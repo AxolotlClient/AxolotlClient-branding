@@ -20,25 +20,20 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.util;
+package io.github.axolotlclient.mixin;
 
-public record UnsupportedMod(String name, io.github.axolotlclient.util.UnsupportedMod.UnsupportedReason... reason) {
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import io.github.axolotlclient.AxolotlClient;
+import net.minecraft.client.gui.screen.inventory.menu.PlayerInventoryScreen;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
 
-	public enum UnsupportedReason {
+@Mixin(PlayerInventoryScreen.class)
+public class PlayerInventoryScreenMixin {
 
-		BAN_REASON("be bannable on lots of servers"), CRASH("crash your game"),
-		MIGHT_CRASH("have effects that could crash your game"),
-		UNKNOWN_CONSEQUENSES("have unknown consequences in combination with this mod");
+	@WrapWithCondition(method = "checkStatusEffects", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/screen/inventory/menu/PlayerInventoryScreen;x:I"))
+	private boolean noInventoryShift(PlayerInventoryScreen instance, int value) {
 
-		private final String description;
-
-		UnsupportedReason(String desc) {
-			description = desc;
-		}
-
-		@Override
-		public String toString() {
-			return description;
-		}
+		return AxolotlClient.CONFIG.inventoryPotionEffectOffset.get();
 	}
 }

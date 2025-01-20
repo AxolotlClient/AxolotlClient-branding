@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import io.github.axolotlclient.AxolotlClientCommon;
 import io.github.axolotlclient.api.handlers.*;
 import io.github.axolotlclient.api.requests.AccountSettingsRequest;
 import io.github.axolotlclient.api.requests.GlobalDataRequest;
@@ -76,13 +77,13 @@ public class API {
 	private CompletableFuture<?> restartingFuture;
 	private static final List<Runnable> afterStartupListeners = new ArrayList<>();
 
-	public API(Logger logger, NotificationProvider notificationProvider, TranslationProvider translationProvider,
+	public API(Logger logger, TranslationProvider translationProvider,
 			   StatusUpdateProvider statusUpdateProvider, Options apiOptions) {
 		if (Instance != null) {
 			throw new IllegalStateException("API may only be instantiated once!");
 		}
 		this.logger = logger;
-		this.notificationProvider = notificationProvider;
+		this.notificationProvider = AxolotlClientCommon.getInstance().getNotificationProvider();
 		this.translationProvider = translationProvider;
 		this.statusUpdateProvider = statusUpdateProvider;
 		this.apiOptions = apiOptions;
@@ -168,10 +169,11 @@ public class API {
 						logDetailed("Created self user!");
 					}),
 				AccountSettingsRequest.get().thenAccept(r -> {
-					apiOptions.retainUsernames.set(r.isRetainUsernames());
-					apiOptions.showActivity.set(r.isShowActivity());
-					apiOptions.showLastOnline.set(r.isShowLastOnline());
-					apiOptions.showRegistered.set(r.isShowRegistered());
+					apiOptions.retainUsernames.set(r.retainUsernames());
+					apiOptions.showActivity.set(r.showActivity());
+					apiOptions.showLastOnline.set(r.showLastOnline());
+					apiOptions.showRegistered.set(r.showRegistered());
+					apiOptions.allowFriendsImageAccess.set(r.allowFriendsImageAccess());
 				})).thenRun(() -> logDetailed("completed data requests")).join();
 			createSession();
 			startStatusUpdateThread();
